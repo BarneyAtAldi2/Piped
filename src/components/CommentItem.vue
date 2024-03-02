@@ -1,11 +1,11 @@
 <template>
     <div class="comment mt-1.5 flex">
         <img
+            loading="lazy"
             :src="comment.thumbnail"
             class="comment-avatar h-12 w-12 rounded-full"
             height="48"
             width="48"
-            loading="lazy"
             alt="Avatar"
         />
 
@@ -29,11 +29,12 @@
                 <div class="comment-meta mb-1.5 text-sm" v-text="comment.commentedTime" />
             </div>
             <!-- eslint-disable-next-line vue/no-v-html -->
-            <div class="whitespace-pre-wrap" v-html="purifiedText" />
-            <div class="comment-footer mt-1 flex items-center">
+            <CollapsableText :text="comment.commentText" :visible-limit="500" />
+            <div class="comment-footer my-1 flex items-center gap-3">
                 <div class="i-fa6-solid:thumbs-up" />
-                <span class="ml-1" v-text="numberFormat(comment.likeCount)" />
-                <font-awesome-icon v-if="comment.hearted" class="ml-1" icon="heart" />
+                <span v-text="numberFormat(comment.likeCount)" />
+                <font-awesome-icon v-if="comment.hearted" icon="heart" />
+                <img v-if="comment.creatorReplied" :src="uploaderAvatarUrl" class="h-5 w-5 rounded-full" />
             </div>
             <template v-if="comment.repliesPage && (!loadingReplies || !showingReplies)">
                 <div class="cursor-pointer" @click="loadReplies">
@@ -61,9 +62,10 @@
 </template>
 
 <script>
-import { purifyHTML } from "@/utils/HtmlUtils";
+import CollapsableText from "./CollapsableText.vue";
 
 export default {
+    components: { CollapsableText },
     props: {
         comment: {
             type: Object,
@@ -72,6 +74,7 @@ export default {
             },
         },
         uploader: { type: String, default: null },
+        uploaderAvatarUrl: { type: String, default: null },
         videoId: { type: String, default: null },
     },
     data() {
@@ -82,18 +85,13 @@ export default {
             nextpage: null,
         };
     },
-    computed: {
-        purifiedText() {
-            return purifyHTML(this.comment.commentText);
-        },
-    },
     methods: {
         async loadReplies() {
+            console.log(this.uploaderAvatarUrl);
             if (!this.showingReplies && this.loadingReplies) {
                 this.showingReplies = true;
                 return;
             }
-
             this.loadingReplies = true;
             this.showingReplies = true;
             this.fetchJson(this.apiUrl() + "/nextpage/comments/" + this.videoId, {

@@ -1,25 +1,34 @@
 <template>
     <h1 v-t="'titles.subscriptions'" class="my-4 text-center font-bold" />
     <!-- import / export section -->
-    <div class="w-full flex justify-between">
-        <div class="flex gap-2">
+    <div class="flex flex-wrap justify-between">
+        <div class="flex gap-1">
+            <!-- import json/csv -->
             <button class="btn">
                 <router-link v-t="'actions.import_from_json_csv'" to="/import" />
             </button>
+            <!-- export to json -->
             <button v-t="'actions.export_to_json'" class="btn" @click="exportHandler" />
-            <input
-                id="fileSelector"
-                ref="fileSelector"
-                type="file"
-                class="display-none"
-                multiple="multiple"
-                @change="importGroupsHandler"
-            />
-            <label
-                for="fileSelector"
-                class="btn"
-                v-text="`${$t('actions.import_from_json')} (${$t('titles.channel_groups')})`"
-            />
+        </div>
+        <div class="m-1 flex flex-wrap gap-1">
+            <!-- import channel groups to json-->
+            <div>
+                <label
+                    for="fileSelector"
+                    class="btn"
+                    v-text="`${$t('actions.import_from_json')} (${$t('titles.channel_groups')})`"
+                />
+                <input
+                    id="fileSelector"
+                    ref="fileSelector"
+                    type="file"
+                    class="hidden"
+                    multiple="multiple"
+                    @change="importGroupsHandler"
+                />
+            </div>
+
+            <!-- export channel groups to json  -->
             <button
                 class="btn"
                 @click="exportGroupsHandler"
@@ -27,9 +36,9 @@
             />
         </div>
         <!-- subscriptions count, only shown if there are any  -->
-        <i18n-t v-if="subscriptions.length > 0" keypath="subscriptions.subscribed_channels_count">{{
-            subscriptions.length
-        }}</i18n-t>
+        <div v-if="subscriptions.length > 0" class="flex self-center gap-1">
+            <i18n-t keypath="subscriptions.subscribed_channels_count">{{ subscriptions.length }}</i18n-t>
+        </div>
     </div>
     <br />
     <hr />
@@ -47,8 +56,8 @@
                 <font-awesome-icon class="mx-2" icon="circle-minus" @click="deleteGroup(group)" />
             </div>
         </button>
-        <button class="btn mx-1">
-            <font-awesome-icon icon="circle-plus" @click="showCreateGroupModal = true" />
+        <button class="btn mx-1" @click="showCreateGroupModal = true">
+            <font-awesome-icon icon="circle-plus" />
         </button>
     </div>
     <br />
@@ -75,27 +84,28 @@
     </div>
     <br />
 
-    <ModalComponent v-if="showCreateGroupModal" @close="showCreateGroupModal = !showCreateGroupModal">
-        <h2 v-t="'actions.create_group'" />
-        <div class="flex flex-col">
-            <input v-model="newGroupName" class="input my-4" type="text" :placeholder="$t('actions.group_name')" />
-            <button v-t="'actions.create_group'" class="btn ml-auto w-max" @click="createGroup()" />
-        </div>
-    </ModalComponent>
+    <CreateGroupModal
+        v-if="showCreateGroupModal"
+        :on-create-group="createGroup"
+        @close="showCreateGroupModal = false"
+    />
 
     <ModalComponent v-if="showEditGroupModal" @close="showEditGroupModal = false">
         <div class="mb-5 mt-3 flex justify-between">
             <input v-model="editedGroupName" type="text" class="input" />
             <button v-t="'actions.okay'" class="btn" :placeholder="$t('actions.group_name')" @click="editGroupName()" />
         </div>
-        <div class="mb-2 mt-3 h-70 flex flex-col overflow-y-scroll">
+        <div class="mb-2 mt-3 h-[80vh] flex flex-col overflow-y-scroll pr-2">
             <div v-for="subscription in subscriptions" :key="subscription.name">
-                <div class="mr-3 flex justify-between">
-                    <span>{{ subscription.name }}</span>
+                <div class="mr-3 flex items-center justify-between">
+                    <a :href="subscription.url" target="_blank" class="flex items-center overflow-hidden">
+                        <img :src="subscription.avatar" class="h-8 w-8 rounded-full" />
+                        <span class="ml-2">{{ subscription.name }}</span>
+                    </a>
                     <input
                         type="checkbox"
                         class="checkbox"
-                        :checked="selectedGroup.channels.includes(subscription.url.substr(-11))"
+                        :checked="selectedGroup.channels.includes(subscription.url.substr(-24))"
                         @change="checkedChange(subscription)"
                     />
                 </div>
@@ -107,9 +117,10 @@
 
 <script>
 import ModalComponent from "./ModalComponent.vue";
+import CreateGroupModal from "./CreateGroupModal.vue";
 
 export default {
-    components: { ModalComponent },
+    components: { ModalComponent, CreateGroupModal },
     data() {
         return {
             subscriptions: [],
@@ -120,7 +131,6 @@ export default {
             channelGroups: [],
             showCreateGroupModal: false,
             showEditGroupModal: false,
-            newGroupName: "",
             editedGroupName: "",
         };
     },
@@ -128,7 +138,7 @@ export default {
         filteredSubscriptions(_this) {
             return _this.selectedGroup.groupName == ""
                 ? _this.subscriptions
-                : _this.subscriptions.filter(channel => _this.selectedGroup.channels.includes(channel.url.substr(-11)));
+                : _this.subscriptions.filter(channel => _this.selectedGroup.channels.includes(channel.url.substr(-24)));
         },
     },
     mounted() {
@@ -140,35 +150,16 @@ export default {
         this.channelGroups.push(this.selectedGroup);
 
         if (!window.db) return;
-        const cursor = this.getChannelGroupsCursor();
-        cursor.onsuccess = e => {
-            const cursor = e.target.result;
-            if (cursor) {
-                const group = cursor.value;
-                this.channelGroups.push({
-                    groupName: group.groupName,
-                    channels: JSON.parse(group.channels),
-                });
-                cursor.continue();
-            }
-        };
+
+        this.loadChannelGroups();
     },
     activated() {
         document.title = "Subscriptions - Piped";
     },
     methods: {
-        async fetchSubscriptions() {
-            if (this.authenticated) {
-                return await this.fetchJson(this.authApiUrl() + "/subscriptions", null, {
-                    headers: {
-                        Authorization: this.getAuthToken(),
-                    },
-                });
-            } else {
-                return await this.fetchJson(this.authApiUrl() + "/subscriptions/unauthenticated", {
-                    channels: this.getUnauthenticatedChannels(),
-                });
-            }
+        async loadChannelGroups() {
+            const groups = await this.getChannelGroups();
+            this.channelGroups.push(...groups);
         },
         handleButton(subscription) {
             const channelId = subscription.url.split("/")[2];
@@ -208,17 +199,15 @@ export default {
             this.selectedGroup = group;
             this.editedGroupName = group.groupName;
         },
-        createGroup() {
-            if (!this.newGroupName || this.channelGroups.some(group => group.groupName == this.newGroupName)) return;
+        createGroup(newGroupName) {
+            if (!newGroupName || this.channelGroups.some(group => group.groupName == newGroupName)) return;
 
             const newGroup = {
-                groupName: this.newGroupName,
+                groupName: newGroupName,
                 channels: [],
             };
             this.channelGroups.push(newGroup);
             this.createOrUpdateChannelGroup(newGroup);
-
-            this.newGroupName = "";
 
             this.showCreateGroupModal = false;
         },
@@ -243,7 +232,7 @@ export default {
             this.selectedGroup = this.channelGroups[0];
         },
         checkedChange(subscription) {
-            const channelId = subscription.url.substr(-11);
+            const channelId = subscription.url.substr(-24);
             this.selectedGroup.channels = this.selectedGroup.channels.includes(channelId)
                 ? this.selectedGroup.channels.filter(channel => channel != channelId)
                 : this.selectedGroup.channels.concat(channelId);

@@ -236,6 +236,28 @@ const mixin = {
             const localSubscriptions = this.getLocalSubscriptions() ?? [];
             return localSubscriptions.join(",");
         },
+        async fetchSubscriptions() {
+            if (this.authenticated) {
+                return await this.fetchJson(this.authApiUrl() + "/subscriptions", null, {
+                    headers: {
+                        Authorization: this.getAuthToken(),
+                    },
+                });
+            } else {
+                const channels = this.getUnauthenticatedChannels();
+                const split = channels.split(",");
+                if (split.length > 100) {
+                    return await this.fetchJson(this.authApiUrl() + "/subscriptions/unauthenticated", null, {
+                        method: "POST",
+                        body: JSON.stringify(split),
+                    });
+                } else {
+                    return await this.fetchJson(this.authApiUrl() + "/subscriptions/unauthenticated", {
+                        channels: this.getUnauthenticatedChannels(),
+                    });
+                }
+            }
+        },
         /* generate a temporary file and ask the user to download it */
         download(text, filename, mimeType) {
             var file = new Blob([text], { type: mimeType });
@@ -247,11 +269,26 @@ const mixin = {
             elem.click();
             elem.remove();
         },
-        getChannelGroupsCursor() {
-            if (!window.db) return;
-            var tx = window.db.transaction("channel_groups", "readonly");
-            var store = tx.objectStore("channel_groups");
-            return store.index("groupName").openCursor();
+        async getChannelGroups() {
+            return new Promise(resolve => {
+                let channelGroups = [];
+                var tx = window.db.transaction("channel_groups", "readonly");
+                var store = tx.objectStore("channel_groups");
+                const cursor = store.index("groupName").openCursor();
+                cursor.onsuccess = e => {
+                    const cursor = e.target.result;
+                    if (cursor) {
+                        const group = cursor.value;
+                        channelGroups.push({
+                            groupName: group.groupName,
+                            channels: JSON.parse(group.channels),
+                        });
+                        cursor.continue();
+                    } else {
+                        resolve(channelGroups);
+                    }
+                };
+            });
         },
         createOrUpdateChannelGroup(group) {
             var tx = window.db.transaction("channel_groups", "readwrite");
@@ -344,7 +381,7 @@ const mixin = {
             });
         },
         async getPlaylist(playlistId) {
-            if (!this.authenticated) {
+            if (playlistId.startsWith("local")) {
                 const playlist = await this.getLocalPlaylist(playlistId);
                 const videoIds = JSON.parse(playlist.videoIds);
                 const videosFuture = videoIds.map(videoId => this.getLocalPlaylistVideo(videoId));
@@ -534,6 +571,41 @@ const mixin = {
                     if (item) item.dearrow = json[videoId];
                 });
             });
+        },
+        async fetchSubscriptionStatus(channelId) {
+            if (!this.authenticated) {
+                return this.isSubscribedLocally(channelId);
+            }
+
+            const response = await this.fetchJson(
+                this.authApiUrl() + "/subscribed",
+                {
+                    channelId: channelId,
+                },
+                {
+                    headers: {
+                        Authorization: this.getAuthToken(),
+                    },
+                },
+            );
+
+            return response?.subscribed;
+        },
+        async toggleSubscriptionState(channelId, subscribed) {
+            if (!this.authenticated) return this.handleLocalSubscriptions(channelId);
+
+            const resp = await this.fetchJson(this.authApiUrl() + (subscribed ? "/unsubscribe" : "/subscribe"), null, {
+                method: "POST",
+                body: JSON.stringify({
+                    channelId: channelId,
+                }),
+                headers: {
+                    Authorization: this.getAuthToken(),
+                    "Content-Type": "application/json",
+                },
+            });
+
+            return !resp.error;
         },
     },
     computed: {

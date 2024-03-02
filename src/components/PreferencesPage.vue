@@ -207,6 +207,16 @@
             @change="onChange($event)"
         />
     </label>
+    <label class="pref" for="txtPrefetchLimit">
+        <strong v-t="'actions.concurrent_prefetch_limit'" />
+        <input
+            id="txtPrefetchLimit"
+            v-model="prefetchLimit"
+            class="input w-24"
+            type="text"
+            @change="onChange($event)"
+        />
+    </label>
 
     <h2 class="text-center">SponsorBlock</h2>
     <p class="text-center">
@@ -263,6 +273,7 @@
     </label>
 
     <h2 v-t="'titles.instance'" class="text-center" />
+    <p v-t="'actions.instances_not_shown'" class="text-center" />
     <label class="pref" for="ddlInstanceSelection">
         <strong v-text="`${$t('actions.instance_selection')}:`" />
         <select id="ddlInstanceSelection" v-model="selectedInstance" class="select w-auto" @change="onChange($event)">
@@ -344,6 +355,7 @@
                 <th v-t="'preferences.registered_users'" />
                 <th v-t="'preferences.version'" class="lt-md:hidden" />
                 <th v-t="'preferences.up_to_date'" />
+                <th v-t="'preferences.uptime_30d'" />
                 <th v-t="'preferences.ssl_score'" />
             </tr>
         </thead>
@@ -355,6 +367,7 @@
                 <td v-text="instance.registered" />
                 <td class="lt-md:hidden" v-text="instance.version" />
                 <td v-text="`${instance.up_to_date ? '&#9989;' : '&#10060;'}`" />
+                <td v-text="`${Number.parseFloat(instance.uptime_30d.toFixed(2))}%`" />
                 <td>
                     <a v-t="'actions.view_ssl_score'" :href="sslScore(instance.api_url)" target="_blank" />
                 </td>
@@ -417,7 +430,7 @@ export default {
             countrySelected: "US",
             defaultHomepage: "trending",
             minimizeComments: false,
-            minimizeDescription: false,
+            minimizeDescription: true,
             minimizeRecommendations: false,
             minimizeChapters: false,
             showWatchOnYouTube: false,
@@ -466,6 +479,7 @@ export default {
                 { code: "ro", name: "Română" },
                 { code: "ru", name: "Русский" },
                 { code: "si", name: "සිංහල" },
+                { code: "sl", name: "Slovenian" },
                 { code: "sr", name: "Српски" },
                 { code: "sv", name: "Svenska" },
                 { code: "ta", name: "தமிழ்" },
@@ -479,6 +493,7 @@ export default {
             enabledCodecs: ["vp9", "avc"],
             disableLBRY: false,
             proxyLBRY: false,
+            prefetchLimit: 2,
             password: null,
             showConfirmResetPrefsDialog: false,
         };
@@ -497,6 +512,7 @@ export default {
                     api_url: this.apiUrl(),
                     locations: "Unknown",
                     cdn: false,
+                    uptime_30d: 100,
                 });
         });
 
@@ -536,7 +552,7 @@ export default {
             this.countrySelected = this.getPreferenceString("region", "US");
             this.defaultHomepage = this.getPreferenceString("homepage", "trending");
             this.minimizeComments = this.getPreferenceBoolean("minimizeComments", false);
-            this.minimizeDescription = this.getPreferenceBoolean("minimizeDescription", false);
+            this.minimizeDescription = this.getPreferenceBoolean("minimizeDescription", true);
             this.minimizeRecommendations = this.getPreferenceBoolean("minimizeRecommendations", false);
             this.minimizeChapters = this.getPreferenceBoolean("minimizeChapters", false);
             this.showWatchOnYouTube = this.getPreferenceBoolean("showWatchOnYouTube", false);
@@ -547,6 +563,7 @@ export default {
             this.enabledCodecs = this.getPreferenceString("enabledCodecs", "vp9,avc").split(",");
             this.disableLBRY = this.getPreferenceBoolean("disableLBRY", false);
             this.proxyLBRY = this.getPreferenceBoolean("proxyLBRY", false);
+            this.prefetchLimit = this.getPreferenceNumber("prefetchLimit", 2);
             this.hideWatched = this.getPreferenceBoolean("hideWatched", false);
             this.mobileChapterLayout = this.getPreferenceString("mobileChapterLayout", "Vertical");
             if (this.selectedLanguage != "en") {
@@ -609,6 +626,7 @@ export default {
                 localStorage.setItem("enabledCodecs", this.enabledCodecs.join(","));
                 localStorage.setItem("disableLBRY", this.disableLBRY);
                 localStorage.setItem("proxyLBRY", this.proxyLBRY);
+                localStorage.setItem("prefetchLimit", this.prefetchLimit);
                 localStorage.setItem("hideWatched", this.hideWatched);
                 localStorage.setItem("mobileChapterLayout", this.mobileChapterLayout);
 

@@ -36,12 +36,8 @@
 <script>
 import "shaka-player/dist/controls.css";
 import { parseTimeParam } from "@/utils/Misc";
+
 const shaka = import("shaka-player/dist/shaka-player.ui.js");
-if (!window.muxjs) {
-    import("mux.js").then(muxjs => {
-        window.muxjs = muxjs;
-    });
-}
 const hotkeys = import("hotkeys-js");
 
 export default {
@@ -244,32 +240,6 @@ export default {
 
             videoEl.setAttribute("poster", this.video.thumbnailUrl);
 
-            const time = this.$route.query.t ?? this.$route.query.start;
-
-            if (time) {
-                videoEl.currentTime = parseTimeParam(time);
-                this.initialSeekComplete = true;
-            } else if (window.db && this.getPreferenceBoolean("watchHistory", false)) {
-                var tx = window.db.transaction("watch_history", "readonly");
-                var store = tx.objectStore("watch_history");
-                var request = store.get(this.video.id);
-                request.onsuccess = function (event) {
-                    var video = event.target.result;
-                    const currentTime = video?.currentTime;
-                    if (currentTime) {
-                        if (currentTime < component.video.duration * 0.9) {
-                            videoEl.currentTime = currentTime;
-                        }
-                    }
-                };
-
-                tx.oncomplete = () => {
-                    this.initialSeekComplete = true;
-                };
-            } else {
-                this.initialSeekComplete = true;
-            }
-
             const noPrevPlayer = !this.$player;
 
             var streams = [];
@@ -333,11 +303,12 @@ export default {
             }
 
             if (noPrevPlayer)
-                this.shakaPromise.then(() => {
+                this.shakaPromise.then(async () => {
                     if (this.destroying) return;
                     this.$shaka.polyfill.installAll();
 
-                    const localPlayer = new this.$shaka.Player(videoEl);
+                    const localPlayer = new this.$shaka.Player();
+                    await localPlayer.attach(videoEl);
                     const proxyURL = new URL(component.video.proxyUrl);
                     let proxyPath = proxyURL.pathname;
                     if (proxyPath.lastIndexOf("/") === proxyPath.length - 1) {
@@ -426,7 +397,7 @@ export default {
             videoEl.currentTime = segment.segment[1];
             segment.skipped = true;
         },
-        setPlayerAttrs(localPlayer, videoEl, uri, mime, shaka) {
+        async setPlayerAttrs(localPlayer, videoEl, uri, mime, shaka) {
             const url = "/watch?v=" + this.video.id;
 
             if (!this.$ui) {
@@ -472,14 +443,7 @@ export default {
 
                 this.$ui = new shaka.ui.Overlay(localPlayer, this.$refs.container, videoEl);
 
-                const overflowMenuButtons = [
-                    "quality",
-                    "language",
-                    "captions",
-                    "picture_in_picture",
-                    "playback_rate",
-                    "airplay",
-                ];
+                const overflowMenuButtons = ["quality", "captions", "picture_in_picture", "playback_rate", "airplay"];
 
                 if (this.isEmbed) {
                     overflowMenuButtons.push("open_new_tab");
@@ -510,6 +474,8 @@ export default {
 
             const disableVideo = this.getPreferenceBoolean("listen", false) && !this.video.livestream;
 
+            const prefetchLimit = Math.min(Math.max(this.getPreferenceNumber("prefetchLimit", 2), 0), 10);
+
             this.$player.configure({
                 preferredVideoCodecs: this.preferredVideoCodecs,
                 preferredAudioCodecs: ["opus", "mp4a"],
@@ -517,7 +483,12 @@ export default {
                     disableVideo: disableVideo,
                 },
                 streaming: {
-                    segmentPrefetchLimit: 10,
+                    segmentPrefetchLimit: prefetchLimit,
+                    retryParameters: {
+                        maxAttempts: Infinity,
+                        baseDelay: 250,
+                        backoffFactor: 1.5,
+                    },
                 },
             });
 
@@ -526,8 +497,39 @@ export default {
                 quality > 0 && (this.video.audioStreams.length > 0 || this.video.livestream) && !disableVideo;
             if (qualityConds) this.$player.configure("abr.enabled", false);
 
+            const time = this.$route.query.t ?? this.$route.query.start;
+
+            var startTime = 0;
+
+            if (time) {
+                startTime = parseTimeParam(time);
+                this.initialSeekComplete = true;
+            } else if (window.db && this.getPreferenceBoolean("watchHistory", false)) {
+                await new Promise(resolve => {
+                    var tx = window.db.transaction("watch_history", "readonly");
+                    var store = tx.objectStore("watch_history");
+                    var request = store.get(this.video.id);
+                    request.onsuccess = function (event) {
+                        var video = event.target.result;
+                        const currentTime = video?.currentTime;
+                        if (currentTime) {
+                            if (currentTime < video.duration * 0.9) {
+                                startTime = currentTime;
+                            }
+                        }
+                        resolve();
+                    };
+
+                    tx.oncomplete = () => {
+                        this.initialSeekComplete = true;
+                    };
+                });
+            } else {
+                this.initialSeekComplete = true;
+            }
+
             player
-                .load(uri, 0, mime)
+                .load(uri, startTime, mime)
                 .then(() => {
                     const isSafari = window.navigator?.vendor?.includes("Apple");
 
@@ -542,6 +544,18 @@ export default {
                             }
                         }
                         player.selectAudioLanguage(lang);
+                    }
+
+                    const audioLanguages = player.getAudioLanguages();
+                    if (audioLanguages.length > 1) {
+                        const overflowMenuButtons = this.$ui.getConfiguration().overflowMenuButtons;
+                        // append language menu on index 1
+                        const newOverflowMenuButtons = [
+                            ...overflowMenuButtons.slice(0, 1),
+                            "language",
+                            ...overflowMenuButtons.slice(1),
+                        ];
+                        this.$ui.configure("overflowMenuButtons", newOverflowMenuButtons);
                     }
 
                     if (qualityConds) {
@@ -594,6 +608,16 @@ export default {
 
                     const autoDisplayCaptions = this.getPreferenceBoolean("autoDisplayCaptions", false);
                     this.$player.setTextTrackVisibility(autoDisplayCaptions);
+
+                    const prefSubtitles = this.getPreferenceString("subtitles", "");
+                    if (prefSubtitles !== "") {
+                        const textTracks = this.$player.getTextTracks();
+                        const subtitleIdx = textTracks.findIndex(textTrack => textTrack.language == prefSubtitles);
+                        if (subtitleIdx != -1) {
+                            this.$player.setTextTrackVisibility(true);
+                            this.$player.selectTextTrack(textTracks[subtitleIdx]);
+                        }
+                    }
                 })
                 .catch(e => {
                     console.error(e);

@@ -72,7 +72,14 @@
             <div class="flex flex-wrap gap-1">
                 <!-- Channel Image & Info -->
                 <div class="flex items-center">
-                    <img :src="video.uploaderAvatar" alt="" loading="lazy" class="rounded-full" />
+                    <img
+                        loading="lazy"
+                        height="48"
+                        width="48"
+                        :src="video.uploaderAvatar"
+                        alt=""
+                        class="rounded-full"
+                    />
                     <router-link v-if="video.uploaderUrl" class="link ml-1.5" :to="video.uploaderUrl">{{
                         video.uploader
                     }}</router-link>
@@ -102,12 +109,13 @@
                         {{ $t("actions.add_to_playlist") }}<font-awesome-icon class="ml-1" icon="circle-plus" />
                     </button>
                     <button
-                        v-t="{
-                            path: `actions.${subscribed ? 'unsubscribe' : 'subscribe'}`,
-                            args: { count: numberFormat(video.uploaderSubscriberCount) },
-                        }"
                         class="btn"
                         @click="subscribeHandler"
+                        v-text="
+                            $t('actions.' + (subscribed ? 'unsubscribe' : 'subscribe')) +
+                            ' - ' +
+                            numberFormat(video.uploaderSubscriberCount)
+                        "
                     />
                     <div class="flex flex-wrap gap-1">
                         <!-- RSS Feed button -->
@@ -234,6 +242,7 @@
                     :key="comment.commentId"
                     :comment="comment"
                     :uploader="video.uploader"
+                    :uploader-avatar-url="video.uploaderAvatar"
                     :video-id="getVideoId()"
                 />
             </div>
@@ -256,6 +265,7 @@
                         v-for="related in video.relatedStreams"
                         :key="related.url"
                         :item="related"
+                        class="mb-4"
                         height="94"
                         width="168"
                     />
@@ -307,7 +317,7 @@ export default {
             selectedAutoLoop: false,
             selectedAutoPlay: null,
             showComments: true,
-            showDesc: true,
+            showDesc: false,
             showRecs: true,
             showChapters: true,
             comments: null,
@@ -408,7 +418,7 @@ export default {
         this.active = true;
         this.selectedAutoPlay = this.getPreferenceBoolean("autoplay", false);
         this.showComments = !this.getPreferenceBoolean("minimizeComments", false);
-        this.showDesc = !this.getPreferenceBoolean("minimizeDescription", false);
+        this.showDesc = !this.getPreferenceBoolean("minimizeDescription", true);
         this.showRecs = !this.getPreferenceBoolean("minimizeRecommendations", false);
         this.showChapters = !this.getPreferenceBoolean("minimizeChapters", false);
         if (this.video?.duration) {
@@ -448,7 +458,7 @@ export default {
             });
 
             sponsors?.segments?.forEach(segment => {
-                const option = skipOptions[segment.category];
+                const option = skipOptions?.[segment.category];
                 segment.autoskip = option === undefined || option === "auto";
             });
 
@@ -500,9 +510,7 @@ export default {
         },
         async getPlaylistData() {
             if (this.playlistId) {
-                await this.fetchJson(this.apiUrl() + "/playlists/" + this.playlistId).then(data => {
-                    this.playlist = data;
-                });
+                this.playlist = await this.getPlaylist(this.playlistId);
                 await this.fetchPlaylistPages().then(() => {
                     if (!(this.index >= 0)) {
                         for (let i = 0; i < this.playlist.relatedStreams.length; i++)
@@ -543,24 +551,8 @@ export default {
         },
         async fetchSubscribedStatus() {
             if (!this.channelId) return;
-            if (!this.authenticated) {
-                this.subscribed = this.isSubscribedLocally(this.channelId);
-                return;
-            }
 
-            this.fetchJson(
-                this.authApiUrl() + "/subscribed",
-                {
-                    channelId: this.channelId,
-                },
-                {
-                    headers: {
-                        Authorization: this.getAuthToken(),
-                    },
-                },
-            ).then(json => {
-                this.subscribed = json.subscribed;
-            });
+            this.subscribed = await this.fetchSubscriptionStatus(this.channelId);
         },
         rewriteComments(data) {
             data.forEach(comment => {
@@ -580,21 +572,9 @@ export default {
             });
         },
         subscribeHandler() {
-            if (this.authenticated) {
-                this.fetchJson(this.authApiUrl() + (this.subscribed ? "/unsubscribe" : "/subscribe"), null, {
-                    method: "POST",
-                    body: JSON.stringify({
-                        channelId: this.channelId,
-                    }),
-                    headers: {
-                        Authorization: this.getAuthToken(),
-                        "Content-Type": "application/json",
-                    },
-                });
-            } else {
-                if (!this.handleLocalSubscriptions(this.channelId)) return;
-            }
-            this.subscribed = !this.subscribed;
+            this.toggleSubscriptionState(this.channelId, this.subscribed).then(success => {
+                if (success) this.subscribed = !this.subscribed;
+            });
         },
         handleClick(event) {
             if (!event || !event.target) return;
@@ -640,6 +620,12 @@ export default {
             }
         },
         getVideoId() {
+            if (this.$route.query.video_ids) {
+                const videos_list = this.$route.query.video_ids.split(",");
+                this.index = Number(this.$route.query.index ?? 0);
+                return videos_list[this.index];
+            }
+
             return this.$route.query.v || this.$route.params.v;
         },
         navigate(time) {
@@ -679,7 +665,15 @@ export default {
         },
         navigateNext() {
             const params = this.$route.query;
-            let url = this.playlist?.relatedStreams?.[this.index]?.url ?? this.video.relatedStreams[0].url;
+            const video_ids = this.$route.query.video_ids?.split(",") ?? [];
+            let url;
+            if (this.playlist) {
+                url = this.playlist?.relatedStreams?.[this.index]?.url ?? this.video.relatedStreams[0].url;
+            } else if (video_ids.length > this.index + 1) {
+                url = `${this.$route.path}?index=${this.index + 1}`;
+            } else {
+                url = this.video.relatedStreams[0].url;
+            }
             const searchParams = new URLSearchParams();
             for (var param in params)
                 switch (param) {
@@ -687,7 +681,8 @@ export default {
                     case "t":
                         break;
                     case "index":
-                        if (this.index < this.playlist.relatedStreams.length) searchParams.set("index", this.index + 1);
+                        if (this.playlist && this.index < this.playlist.relatedStreams.length)
+                            searchParams.set("index", this.index + 1);
                         break;
                     case "list":
                         if (this.index < this.playlist.relatedStreams.length) searchParams.set("list", params.list);

@@ -13,11 +13,11 @@
         >
             <div class="w-full">
                 <img
+                    loading="lazy"
                     class="aspect-video w-full object-contain"
                     :src="thumbnail"
                     :alt="title"
                     :class="{ 'shorts-img': item.isShort, 'opacity-75': item.watched }"
-                    loading="lazy"
                 />
                 <!-- progress bar -->
                 <div class="relative h-1 w-full">
@@ -62,8 +62,8 @@
             <router-link :to="item.uploaderUrl">
                 <img
                     v-if="item.uploaderAvatar"
-                    :src="item.uploaderAvatar"
                     loading="lazy"
+                    :src="item.uploaderAvatar"
                     class="mr-0.5 mt-0.5 h-32px w-32px rounded-full"
                     width="68"
                     height="68"
@@ -81,7 +81,7 @@
                     <font-awesome-icon v-if="item.uploaderVerified" class="ml-1.5" icon="check" />
                 </router-link>
 
-                <div v-if="item.views >= 0 || item.uploadedDate" class="mt-1 text-xs font-normal text-gray-300">
+                <div v-if="item.views >= 0 || item.uploadedDate" class="mt-1 text-xs text-gray-300 font-normal">
                     <span v-if="item.views >= 0">
                         <font-awesome-icon icon="eye" />
                         <span class="pl-1" v-text="`${numberFormat(item.views)} •`" />
@@ -107,8 +107,11 @@
                 >
                     <font-awesome-icon icon="headphones" />
                 </router-link>
-                <button :title="$t('actions.add_to_playlist')" @click="showModal = !showModal">
+                <button :title="$t('actions.add_to_playlist')" @click="showPlaylistModal = !showPlaylistModal">
                     <font-awesome-icon icon="circle-plus" />
+                </button>
+                <button :title="$t('actions.share')" @click="showShareModal = !showShareModal">
+                    <font-awesome-icon icon="share" />
                 </button>
                 <button
                     v-if="admin"
@@ -125,10 +128,16 @@
                     @confirm="removeVideo(item.url.substr(-11))"
                 />
                 <PlaylistAddModal
-                    v-if="showModal"
+                    v-if="showPlaylistModal"
                     :video-id="item.url.substr(-11)"
                     :video-info="item"
-                    @close="showModal = !showModal"
+                    @close="showPlaylistModal = false"
+                />
+                <ShareModal
+                    v-if="showShareModal"
+                    :video-id="item.url.substr(-11)"
+                    :current-time="0"
+                    @close="showShareModal = false"
                 />
             </div>
         </div>
@@ -137,10 +146,11 @@
 
 <script>
 import PlaylistAddModal from "./PlaylistAddModal.vue";
+import ShareModal from "./ShareModal.vue";
 import ConfirmModal from "./ConfirmModal.vue";
 
 export default {
-    components: { PlaylistAddModal, ConfirmModal },
+    components: { PlaylistAddModal, ConfirmModal, ShareModal },
     props: {
         item: {
             type: Object,
@@ -162,7 +172,8 @@ export default {
     emits: ["remove"],
     data() {
         return {
-            showModal: false,
+            showPlaylistModal: false,
+            showShareModal: false,
             showVideo: true,
             showConfirmRemove: false,
         };

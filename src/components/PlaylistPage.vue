@@ -9,7 +9,7 @@
         <div class="mt-1 flex items-center justify-between">
             <div>
                 <router-link class="link flex items-center gap-3" :to="playlist.uploaderUrl || '/'">
-                    <img :src="playlist.uploaderAvatar" loading="lazy" class="rounded-full" />
+                    <img loading="lazy" :src="playlist.uploaderAvatar" class="rounded-full" />
                     <strong v-text="playlist.uploader" />
                 </router-link>
             </div>
@@ -102,16 +102,8 @@ export default {
         window.removeEventListener("scroll", this.handleScroll);
     },
     methods: {
-        async fetchPlaylist() {
-            const playlistId = this.$route.query.list;
-            if (playlistId.startsWith("local")) {
-                return this.getPlaylist(playlistId);
-            }
-
-            return await await this.fetchJson(this.authApiUrl() + "/playlists/" + this.$route.query.list);
-        },
         async getPlaylistData() {
-            this.fetchPlaylist()
+            this.getPlaylist(this.$route.query.list)
                 .then(data => (this.playlist = data))
                 .then(() => {
                     this.updateTitle();

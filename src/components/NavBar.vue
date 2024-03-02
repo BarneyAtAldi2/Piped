@@ -183,7 +183,9 @@ export default {
             this.suggestionsVisible = true;
         },
         onInputBlur() {
-            this.suggestionsVisible = false;
+            // the search suggestions will be hidden after some seconds
+            // otherwise anchor links won't work!
+            setTimeout(() => (this.suggestionsVisible = false), 200);
         },
         onSearchTextChange(searchText) {
             this.searchText = searchText;
@@ -198,10 +200,14 @@ export default {
         },
         submitSearch(e) {
             e.target.blur();
-            this.$router.push({
-                name: "SearchResults",
-                query: { search_query: this.searchText },
-            });
+            if (this.searchText) {
+                this.$router.push({
+                    name: "SearchResults",
+                    query: { search_query: this.searchText },
+                });
+            } else {
+                this.$router.push("/");
+            }
             return;
         },
     },

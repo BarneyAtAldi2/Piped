@@ -4,9 +4,9 @@
     <LoadingIndicatorPage :show-content="channel != null && !channel.error">
         <img
             v-if="channel.bannerUrl"
+            loading="lazy"
             :src="channel.bannerUrl"
             class="h-30 w-full object-cover py-1.5 md:h-50"
-            loading="lazy"
         />
         <div class="flex flex-col items-center justify-between md:flex-row">
             <div class="flex place-items-center">
@@ -19,12 +19,20 @@
 
             <div class="flex gap-2">
                 <button
-                    v-t="{
-                        path: `actions.${subscribed ? 'unsubscribe' : 'subscribe'}`,
-                        args: { count: numberFormat(channel.subscriberCount) },
-                    }"
                     class="btn"
                     @click="subscribeHandler"
+                    v-text="
+                        $t('actions.' + (subscribed ? 'unsubscribe' : 'subscribe')) +
+                        ' - ' +
+                        numberFormat(channel.subscriberCount)
+                    "
+                ></button>
+
+                <button
+                    v-if="subscribed"
+                    v-t="'actions.add_to_group'"
+                    class="btn"
+                    @click="showGroupModal = true"
                 ></button>
 
                 <!-- RSS Feed button -->
@@ -70,6 +78,8 @@
                 hide-channel
             />
         </div>
+
+        <AddToGroupModal v-if="showGroupModal" :channel-id="channel.id.substr(-24)" @close="showGroupModal = false" />
     </LoadingIndicatorPage>
 </template>
 
@@ -79,6 +89,7 @@ import ContentItem from "./ContentItem.vue";
 import WatchOnButton from "./WatchOnButton.vue";
 import LoadingIndicatorPage from "./LoadingIndicatorPage.vue";
 import CollapsableText from "./CollapsableText.vue";
+import AddToGroupModal from "./AddToGroupModal.vue";
 
 export default {
     components: {
@@ -87,6 +98,7 @@ export default {
         WatchOnButton,
         LoadingIndicatorPage,
         CollapsableText,
+        AddToGroupModal,
     },
     data() {
         return {
@@ -95,6 +107,7 @@ export default {
             tabs: [],
             selectedTab: 0,
             contentItems: [],
+            showGroupModal: false,
         };
     },
     mounted() {
@@ -114,24 +127,8 @@ export default {
     methods: {
         async fetchSubscribedStatus() {
             if (!this.channel.id) return;
-            if (!this.authenticated) {
-                this.subscribed = this.isSubscribedLocally(this.channel.id);
-                return;
-            }
 
-            this.fetchJson(
-                this.authApiUrl() + "/subscribed",
-                {
-                    channelId: this.channel.id,
-                },
-                {
-                    headers: {
-                        Authorization: this.getAuthToken(),
-                    },
-                },
-            ).then(json => {
-                this.subscribed = json.subscribed;
-            });
+            this.subscribed = await this.fetchSubscriptionStatus(this.channel.id);
         },
         async fetchChannel() {
             const url = this.$route.path.includes("@")
@@ -203,21 +200,9 @@ export default {
             });
         },
         subscribeHandler() {
-            if (this.authenticated) {
-                this.fetchJson(this.authApiUrl() + (this.subscribed ? "/unsubscribe" : "/subscribe"), null, {
-                    method: "POST",
-                    body: JSON.stringify({
-                        channelId: this.channel.id,
-                    }),
-                    headers: {
-                        Authorization: this.getAuthToken(),
-                        "Content-Type": "application/json",
-                    },
-                });
-            } else {
-                if (!this.handleLocalSubscriptions(this.channel.id)) return;
-            }
-            this.subscribed = !this.subscribed;
+            this.toggleSubscriptionState(this.channel.id, this.subscribed).then(success => {
+                if (success) this.subscribed = !this.subscribed;
+            });
         },
         getTranslatedTabName(tabName) {
             let translatedTabName = tabName;
