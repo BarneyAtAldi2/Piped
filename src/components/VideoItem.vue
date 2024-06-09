@@ -8,6 +8,7 @@
                     v: item.url.substr(-11),
                     ...(playlistId && { list: playlistId }),
                     ...(index >= 0 && { index: index + 1 }),
+                    ...(preferListen && { listen: 1 }),
                 },
             }"
         >
@@ -43,7 +44,7 @@
                     v-text="timeFormat(item.duration)"
                 />
                 <i18n-t v-else keypath="video.live" class="thumbnail-overlay thumbnail-right !bg-red-600" tag="div">
-                    <font-awesome-icon class="w-3" :icon="['fas', 'broadcast-tower']" />
+                    <i class="i-fa6-solid:tower-broadcast w-3" />
                 </i18n-t>
                 <span v-if="item.watched" v-t="'video.watched'" class="thumbnail-overlay bottom-5px left-5px" />
             </div>
@@ -78,12 +79,12 @@
                     :title="item.uploaderName"
                 >
                     <span v-text="item.uploaderName" />
-                    <font-awesome-icon v-if="item.uploaderVerified" class="ml-1.5" icon="check" />
+                    <i v-if="item.uploaderVerified" class="i-fa6-solid:check ml-1.5" />
                 </router-link>
 
                 <div v-if="item.views >= 0 || item.uploadedDate" class="mt-1 text-xs text-gray-300 font-normal">
                     <span v-if="item.views >= 0">
-                        <font-awesome-icon icon="eye" />
+                        <i class="i-fa6-solid:eye" />
                         <span class="pl-1" v-text="`${numberFormat(item.views)} •`" />
                     </span>
                     <span v-if="item.uploaded > 0" class="pl-0.5" v-text="timeAgo(item.uploaded)" />
@@ -99,19 +100,19 @@
                             v: item.url.substr(-11),
                             ...(playlistId && { list: playlistId }),
                             ...(index >= 0 && { index: index + 1 }),
-                            listen: '1',
+                            ...(!preferListen && { listen: 1 }),
                         },
                     }"
-                    :aria-label="'Listen to ' + title"
-                    :title="'Listen to ' + title"
+                    :aria-label="preferListen ? title : 'Listen to ' + title"
+                    :title="preferListen ? title : 'Listen to ' + title"
                 >
-                    <font-awesome-icon icon="headphones" />
+                    <i :class="preferListen ? 'i-fa6-solid:tv' : 'i-fa6-solid:headphones'" />
                 </router-link>
                 <button :title="$t('actions.add_to_playlist')" @click="showPlaylistModal = !showPlaylistModal">
-                    <font-awesome-icon icon="circle-plus" />
+                    <i class="i-fa6-solid:circle-plus" />
                 </button>
                 <button :title="$t('actions.share')" @click="showShareModal = !showShareModal">
-                    <font-awesome-icon icon="share" />
+                    <i class="i-fa6-solid:share" />
                 </button>
                 <button
                     v-if="admin"
@@ -119,7 +120,7 @@
                     :title="$t('actions.remove_from_playlist')"
                     @click="showConfirmRemove = true"
                 >
-                    <font-awesome-icon icon="circle-minus" />
+                    <i class="i-fa6-solid:circle-minus" />
                 </button>
                 <ConfirmModal
                     v-if="showConfirmRemove"
@@ -167,6 +168,7 @@ export default {
         hideChannel: { type: Boolean, default: false },
         index: { type: Number, default: -1 },
         playlistId: { type: String, default: null },
+        preferListen: { type: Boolean, default: false },
         admin: { type: Boolean, default: false },
     },
     emits: ["remove"],

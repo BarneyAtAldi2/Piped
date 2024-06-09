@@ -84,7 +84,7 @@
         "logout": "Odhlásiť sa z tohto zariadenia",
         "minimize_recommendations_default": "Skryť odporúčania predvolene",
         "different_auth_instance": "Na overenie použite inú inštanciu",
-        "instance_auth_selection": "Inštancia autentifikácie",
+        "instance_auth_selection": "Autentifikačná inštancia",
         "invalidate_session": "Odhlásiť sa zo všetkých zariadení",
         "clone_playlist": "Klonovať playlist",
         "clone_playlist_success": "Úspešne klonované!",
@@ -128,7 +128,15 @@
         "download_frame": "Stiahnuť snímok",
         "add_to_group": "Pridať do skupiny",
         "instance_privacy_policy": "Zásady ochrany osobných údajov",
-        "generate_qrcode": "Vygenerovať QR kód"
+        "generate_qrcode": "Vygenerovať QR kód",
+        "customize": "Prispôsobiť",
+        "invalid_url": "Neplatná adresa URL!",
+        "add": "Pridať",
+        "delete_group_confirm": "Vymazať túto skupinu?",
+        "creator_replied": "Odpoveď autora",
+        "creator_liked": "Autorovi sa páčilo",
+        "invalid_input": "Nesprávne údaje",
+        "playback_speed": "Rýchlosť prehrávania"
     },
     "player": {
         "watch_on": "Zobraziť na {0}",
@@ -150,7 +158,9 @@
         "bookmarks": "Záložky",
         "channels": "Kanály",
         "dearrow": "DeArrow",
-        "channel_groups": "Skupiny kanálov"
+        "channel_groups": "Skupiny kanálov",
+        "albums": "Albumy",
+        "custom_instances": "Vlastné inštancie"
     },
     "preferences": {
         "up_to_date": "Aktuálna?",
@@ -160,7 +170,8 @@
         "registered_users": "Registrovaní používatelia",
         "has_cdn": "Používa sieť CDN?",
         "version": "Verzia",
-        "uptime_30d": "Doba prevádzky (30 dní)"
+        "uptime_30d": "Doba prevádzky (30 dní)",
+        "api_url": "Api URL"
     },
     "video": {
         "sponsor_segments": "Sponzorské segmenty",

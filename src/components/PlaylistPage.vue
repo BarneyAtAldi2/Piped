@@ -6,27 +6,27 @@
 
         <CollapsableText v-if="playlist?.description" :text="playlist.description" />
 
-        <div class="mt-1 flex items-center justify-between">
+        <div class="mt-1 flex justify-between <md:flex-col md:items-center">
             <div>
                 <router-link class="link flex items-center gap-3" :to="playlist.uploaderUrl || '/'">
-                    <img loading="lazy" :src="playlist.uploaderAvatar" class="rounded-full" />
+                    <img loading="lazy" :src="playlist.uploaderAvatar" class="h-12 rounded-full" />
                     <strong v-text="playlist.uploader" />
                 </router-link>
             </div>
-            <div>
-                <strong class="mr-2" v-text="`${playlist.videos} ${$t('video.videos')}`" />
+            <div class="flex flex-wrap items-center gap-1">
+                <strong v-text="`${playlist.videos} ${$t('video.videos')}`" />
                 <button v-if="!isPipedPlaylist" class="btn mx-1" @click="bookmarkPlaylist">
                     {{ $t(`actions.${isBookmarked ? "playlist_bookmarked" : "bookmark_playlist"}`)
-                    }}<font-awesome-icon class="ml-3" icon="bookmark" />
+                    }}<i class="i-fa6-solid:bookmark ml-3" />
                 </button>
                 <button v-if="authenticated && !isPipedPlaylist" class="btn mr-1" @click="clonePlaylist">
-                    {{ $t("actions.clone_playlist") }}<font-awesome-icon class="ml-3" icon="clone" />
+                    {{ $t("actions.clone_playlist") }}<i class="i-fa6-solid:clone ml-3" />
                 </button>
                 <button class="btn mr-1" @click="downloadPlaylistAsTxt">
                     {{ $t("actions.download_as_txt") }}
                 </button>
                 <a class="btn mr-1" :href="getRssUrl">
-                    <font-awesome-icon icon="rss" />
+                    <i class="i-fa6-solid:rss" />
                 </a>
                 <WatchOnButton :link="`https://www.youtube.com/playlist?list=${$route.query.list}`" />
             </div>

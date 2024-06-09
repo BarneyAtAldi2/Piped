@@ -134,11 +134,14 @@ Donations can be made at:
 
 -   bc1qhq8zjxmu405nvp37njj6zv3s980zg400pu9jfe (BTC)
 -   0x1D77D4cfB1a947514241bcf19B1F04738495e2fD (ETH)
--   8A5Up8rKgagVAz6TuUduBqHp518H1U6fYc6GqCfWsaEfjGzbSccfYpgMqp5d4oe5Ws5MuFE1iKmhQTadhMhvuk3bHRT5Ebk (XMR, aka Monero)
+-   84wyyeGTrg4U1daJufi78bAFrBQgdRhmxJZvgYv8dAFeFVwkJaBEmw5C7fNniUM9n4jfrz3NeG32Agxtp7JNAcCUFPACfwA (XMR, aka Monero)
 -   nano_1ngejzydncche4rdua3iebhj7sa95pw5geq4pb8phugtjf3tku933ktjb4pq (Nano)
 -   XpzgouDTKCUuE8a92XqjX9b43gKL8oLihw (Dash)
 
-FIAT donations can be made at: https://liberapay.com/kavin
+FIAT donations can be made at:
+
+- https://liberapay.com/kavin (Author of project, used for Project infrastructure maintenance, and official instance)
+- https://liberapay.com/Bnyro (Maintainer of repo)
 
 Contributions in any other form are also welcomed.
 
@@ -157,7 +160,7 @@ Contributions in any other form are also welcomed.
 -   [Hyperpipe](https://codeberg.org/Hyperpipe/Hyperpipe) - Alternative privacy respecting front-end for YouTube Music.
 -   [ytify](https://github.com/n-ce/ytify) - Complementary audio streaming frontend for YouTube & YouTube Music.
 -   [Musicale](https://github.com/Bellisario/musicale) - Alternative frontend for YouTube Music with style.
--   [conduit](https://github.com/ai25/conduit) - Alternative frontend for YouTube, with a modern player and watch together capablities.
+-   [conduit](https://github.com/ai25/conduit) - Alternative frontend for YouTube, with a modern player and watch together capabilities.
 -   [DeskVideo](https://github.com/malisipi/DeskVideo) - Desktop styled, customizable alternative frontend for YouTube.
 -   [ReacTube](https://github.com/NeeRaj-2401/ReacTube) - Privacy friendly & distraction free YouTube frontend.
 

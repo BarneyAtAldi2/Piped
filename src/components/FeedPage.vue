@@ -41,7 +41,7 @@
     <span class="flex gap-2">
         <router-link v-t="'titles.subscriptions'" class="btn" to="/subscriptions" />
         <a :href="getRssUrl" class="btn">
-            <font-awesome-icon icon="rss" />
+            <i class="i-fa6-solid:rss" />
         </a>
     </span>
     <hr />
@@ -90,12 +90,17 @@ export default {
 
             return _this.selectedGroupName == ""
                 ? videos
-                : videos.filter(video => selectedGroup[0].channels.includes(video.uploaderUrl.substr(-11)));
+                : videos.filter(video => selectedGroup[0].channels.includes(video.uploaderUrl.substr(-24)));
         },
     },
     mounted() {
-        this.fetchFeed().then(videos => {
-            this.videosStore = videos;
+        this.fetchFeed().then(resp => {
+            if (resp.error) {
+                alert(resp.error);
+                return;
+            }
+
+            this.videosStore = resp;
             this.loadMoreVideos();
             this.updateWatched(this.videos);
         });
@@ -118,26 +123,6 @@ export default {
         window.removeEventListener("scroll", this.handleScroll);
     },
     methods: {
-        async fetchFeed() {
-            if (this.authenticated) {
-                return await this.fetchJson(this.authApiUrl() + "/feed", {
-                    authToken: this.getAuthToken(),
-                });
-            } else {
-                const channels = this.getUnauthenticatedChannels();
-                const split = channels.split(",");
-                if (split.length > 100) {
-                    return await this.fetchJson(this.authApiUrl() + "/feed/unauthenticated", null, {
-                        method: "POST",
-                        body: JSON.stringify(split),
-                    });
-                } else {
-                    return await this.fetchJson(this.authApiUrl() + "/feed/unauthenticated", {
-                        channels: channels,
-                    });
-                }
-            }
-        },
         async loadChannelGroups() {
             const groups = await this.getChannelGroups();
             this.channelGroups.push(...groups);

@@ -84,7 +84,7 @@
                         video.uploader
                     }}</router-link>
                     <!-- Verified Badge -->
-                    <font-awesome-icon v-if="video.uploaderVerified" class="ml-1" icon="check" />
+                    <i v-if="video.uploaderVerified" class="i-fa6-solid:check ml-1" />
                 </div>
                 <PlaylistAddModal
                     v-if="showModal"
@@ -106,7 +106,7 @@
                         {{ $t("actions.download_frame") }}<i class="i-fa6-solid:download" />
                     </button>
                     <button class="btn flex items-center" @click="showModal = !showModal">
-                        {{ $t("actions.add_to_playlist") }}<font-awesome-icon class="ml-1" icon="circle-plus" />
+                        {{ $t("actions.add_to_playlist") }}<i class="i-fa6-solid:circle-plus ml-1" />
                     </button>
                     <button
                         class="btn"
@@ -128,12 +128,12 @@
                             target="_blank"
                             class="btn flex items-center"
                         >
-                            <font-awesome-icon class="mx-1.5" icon="rss" />
+                            <i class="i-fa6-solid:rss mx-1.5" />
                         </a>
                         <!-- Share Dialog -->
                         <button class="btn flex items-center" @click="showShareModal = !showShareModal">
                             <i18n-t class="lt-lg:hidden" keypath="actions.share" tag="strong"></i18n-t>
-                            <font-awesome-icon class="mx-1.5" icon="fa-share" />
+                            <i class="i-fa6-solid:share mx-1.5" />
                         </button>
                         <!-- YouTube -->
                         <WatchOnButton :link="`https://youtu.be/${getVideoId()}`" />
@@ -150,7 +150,7 @@
                             :title="(isListening ? 'Watch ' : 'Listen to ') + video.title"
                             class="btn flex items-center"
                         >
-                            <font-awesome-icon class="mx-1.5" :icon="isListening ? 'tv' : 'headphones'" />
+                            <i :class="isListening ? 'i-fa6-solid:tv' : 'i-fa6-solid:headphones'" class="mx-1.5" />
                         </router-link>
                     </div>
                 </div>
@@ -253,6 +253,7 @@
                     :playlist-id="playlistId"
                     :playlist="playlist"
                     :selected-index="index"
+                    :prefer-listen="isListening"
                 />
                 <a
                     v-t="`actions.${showRecs ? 'minimize_recommendations' : 'show_recommendations'}`"
@@ -265,6 +266,7 @@
                         v-for="related in video.relatedStreams"
                         :key="related.url"
                         :item="related"
+                        :prefer-listen="isListening"
                         class="mb-4"
                         height="94"
                         width="168"
@@ -544,32 +546,12 @@ export default {
                 this.fetchSponsors().then(data => (this.sponsors = data));
         },
         async getComments() {
-            this.fetchComments().then(data => {
-                this.rewriteComments(data.comments);
-                this.comments = data;
-            });
+            this.comments = await this.fetchComments();
         },
         async fetchSubscribedStatus() {
             if (!this.channelId) return;
 
             this.subscribed = await this.fetchSubscriptionStatus(this.channelId);
-        },
-        rewriteComments(data) {
-            data.forEach(comment => {
-                const parser = new DOMParser();
-                const xmlDoc = parser.parseFromString(comment.commentText, "text/html");
-                xmlDoc.querySelectorAll("a").forEach(elem => {
-                    if (!elem.innerText.match(/(?:[\d]{1,2}:)?(?:[\d]{1,2}):(?:[\d]{1,2})/))
-                        elem.outerHTML = elem.getAttribute("href");
-                });
-                comment.commentText = xmlDoc
-                    .querySelector("body")
-                    .innerHTML.replaceAll(/(?:http(?:s)?:\/\/)?(?:www\.)?youtube\.com(\/[/a-zA-Z0-9_?=&-]*)/gm, "$1")
-                    .replaceAll(
-                        /(?:http(?:s)?:\/\/)?(?:www\.)?youtu\.be\/(?:watch\?v=)?([/a-zA-Z0-9_?=&-]*)/gm,
-                        "/watch?v=$1",
-                    );
-            });
         },
         subscribeHandler() {
             this.toggleSubscriptionState(this.channelId, this.subscribed).then(success => {
@@ -614,7 +596,6 @@ export default {
                 }).then(json => {
                     this.comments.nextpage = json.nextpage;
                     this.loading = false;
-                    this.rewriteComments(json.comments);
                     this.comments.comments = this.comments.comments.concat(json.comments);
                 });
             }

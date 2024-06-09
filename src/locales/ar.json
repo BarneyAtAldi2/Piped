@@ -15,7 +15,9 @@
         "channels": "القنوات",
         "bookmarks": "الإشارات المرجعية",
         "channel_groups": "مجموعات القنوات",
-        "dearrow": "دي ارو"
+        "dearrow": "دي ارو",
+        "albums": "الألبومات",
+        "custom_instances": "مثيلات مخصصة"
     },
     "player": {
         "watch_on": "مشاهدة على {0}",
@@ -150,7 +152,15 @@
         "instance_privacy_policy": "سياسة الخصوصية",
         "add_to_group": "إضافة إلى المجموعة",
         "instances_not_shown": "الخوادم العامة غير المعروضة هنا ليست متاحة حاليًا.",
-        "concurrent_prefetch_limit": "حد الجلب المسبق للدفق المتزامن"
+        "concurrent_prefetch_limit": "حد الجلب المسبق للدفق المتزامن",
+        "customize": "تخصيص",
+        "invalid_url": "عنوان URL غير صالح!",
+        "add": "إضافة",
+        "delete_group_confirm": "حذف هذه المجموعة؟",
+        "creator_replied": "أجاب المنشء",
+        "creator_liked": "المنشء اعجب",
+        "playback_speed": "سرعة التشغيل",
+        "invalid_input": "مدخل غير صالح"
     },
     "video": {
         "sponsor_segments": "المقاطع الإعلانية",
@@ -188,7 +198,8 @@
         "has_cdn": "لديه CDN؟",
         "ssl_score": "نقاط طبقة المقابس الآمنة",
         "up_to_date": "‏محدث؟",
-        "uptime_30d": "وقت التشغيل (30 يومًا)"
+        "uptime_30d": "وقت التشغيل (30 يومًا)",
+        "api_url": "رابط واجهة برمجة التطبيقات"
     },
     "comment": {
         "pinned_by": "مثبت بواسطة {author}",

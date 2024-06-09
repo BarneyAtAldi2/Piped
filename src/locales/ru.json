@@ -15,7 +15,9 @@
         "channels": "Каналы",
         "bookmarks": "Закладки",
         "channel_groups": "Группы каналов",
-        "dearrow": "DeArrow"
+        "dearrow": "DeArrow",
+        "albums": "Альбомы",
+        "custom_instances": "Пользовательские серверы"
     },
     "player": {
         "watch_on": "Посмотреть на {0}",
@@ -150,7 +152,15 @@
         "instance_privacy_policy": "Политика конфиденциальности",
         "add_to_group": "Добавить в группу",
         "instances_not_shown": "Общедоступные экземпляры, которые здесь не показаны, в настоящее время недоступны.",
-        "concurrent_prefetch_limit": "Предел одновременной предзагрузки трансляций"
+        "concurrent_prefetch_limit": "Предел одновременной предзагрузки трансляций",
+        "customize": "Персонализация",
+        "invalid_url": "Неправильная ссылка!",
+        "add": "Добавить",
+        "creator_replied": "Ответ автора",
+        "creator_liked": "Автор оценил",
+        "playback_speed": "Скорость воспроизведения",
+        "invalid_input": "Некорректный ввод",
+        "delete_group_confirm": "Удалить группу?"
     },
     "comment": {
         "pinned_by": "Закреплено пользователем {author}",
@@ -166,7 +176,8 @@
         "registered_users": "Зарегистрировано пользователей",
         "version": "Версия",
         "up_to_date": "Версия актуальна?",
-        "uptime_30d": "Доступность (30д)"
+        "uptime_30d": "Доступность (30д)",
+        "api_url": "Ссылка API"
     },
     "login": {
         "username": "Имя пользователя",

@@ -128,7 +128,15 @@
         "instance_privacy_policy": "Gizlilik Politikası",
         "add_to_group": "Gruba ekle",
         "instances_not_shown": "Burada gösterilmeyen herkese açık sunucular şu anda kullanılamıyor.",
-        "concurrent_prefetch_limit": "Eşzamanlı Akış Ön Getirme Sınırı"
+        "concurrent_prefetch_limit": "Eşzamanlı Akış Ön Getirme Sınırı",
+        "invalid_url": "Geçersiz URL!",
+        "customize": "Özelleştir",
+        "add": "Ekle",
+        "delete_group_confirm": "Bu grup silinsin mi?",
+        "creator_replied": "Oluşturan yanıtladı",
+        "creator_liked": "Oluşturan beğendi",
+        "playback_speed": "Oynatma hızı",
+        "invalid_input": "Geçersiz giriş"
     },
     "player": {
         "watch_on": "{0} üzerinde görüntüle",
@@ -150,7 +158,9 @@
         "channels": "Kanallar",
         "bookmarks": "Yer İmleri",
         "channel_groups": "Kanal grupları",
-        "dearrow": "DeArrow"
+        "dearrow": "DeArrow",
+        "albums": "Albümler",
+        "custom_instances": "Özel sunucular"
     },
     "video": {
         "sponsor_segments": "Sponsorlar Bölümleri",
@@ -176,7 +186,8 @@
         "registered_users": "Kayıtlı Kullanıcılar",
         "version": "Sürüm",
         "up_to_date": "Güncel Mi?",
-        "uptime_30d": "Çalışma Süresi (30g)"
+        "uptime_30d": "Çalışma Süresi (30g)",
+        "api_url": "API URL'si"
     },
     "comment": {
         "pinned_by": "Şunun Tarafından Sabitlendi {author}",

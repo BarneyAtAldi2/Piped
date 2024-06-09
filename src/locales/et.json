@@ -15,7 +15,9 @@
         "dearrow": "DeArrow",
         "livestreams": "Otseetrid",
         "channels": "Kanalid",
-        "channel_groups": "Kanalite grupid"
+        "channel_groups": "Kanalite grupid",
+        "albums": "Albumid",
+        "custom_instances": "Kohandatud vaheserverid"
     },
     "player": {
         "watch_on": "Vaata {0} saidis",
@@ -96,7 +98,7 @@
         "with_playlist": "Jaga koos esitusloendiga",
         "playlist_bookmarked": "Lisatud järjehoidjaks",
         "dismiss": "Katkesta",
-        "create_group": "Loo rühm",
+        "create_group": "Loo grupp",
         "okay": "Sobib",
         "show_search_suggestions": "Näita otsingusoovitusi",
         "instance_auth_selection": "Vaheserver autentimiseks",
@@ -118,7 +120,7 @@
         "share": "Jaga",
         "source_code": "Lähtekood",
         "no_valid_playlists": "Selles failis ei leidu korrektseid esitusloendeid!",
-        "group_name": "Rühma nimi",
+        "group_name": "Grupi nimi",
         "minimize_comments": "Minimeeri kommentaarid",
         "auto_display_captions": "Kuva tiitrid automaatselt",
         "delete_account": "Kustuta konto",
@@ -149,8 +151,16 @@
         "reply_count": "{count} vastust",
         "bookmark_playlist": "Järjehoidja",
         "download_frame": "Laadi alla kaader",
-        "add_to_group": "Lisa rühma",
-        "instance_privacy_policy": "Privaatsuspoliitika"
+        "add_to_group": "Lisa gruppi",
+        "instance_privacy_policy": "Privaatsuspoliitika",
+        "customize": "Kohanda",
+        "invalid_url": "Vigane URL!",
+        "add": "Lisa",
+        "delete_group_confirm": "Kas kustutame selle grupi?",
+        "creator_replied": "Autor vastas",
+        "creator_liked": "Autorile meeldis see",
+        "playback_speed": "Taasesituse kiirus",
+        "invalid_input": "Vigane sisend"
     },
     "preferences": {
         "has_cdn": "CDN'i olek?",
@@ -160,7 +170,8 @@
         "instance_name": "Vaheserveri nimi",
         "instance_locations": "Vaheserveri asukohad",
         "version": "Versioon",
-        "uptime_30d": "Tõrgeteta tööaeg (30p)"
+        "uptime_30d": "Tõrgeteta tööaeg (30p)",
+        "api_url": "API URL"
     },
     "video": {
         "videos": "Videod",

@@ -23,7 +23,8 @@
         "registered_users": "Registrirani korisnici",
         "version": "Verzija",
         "up_to_date": "Najnovija verzija?",
-        "uptime_30d": "Vrijeme rada (30 dana)"
+        "uptime_30d": "Vrijeme rada (30 dana)",
+        "api_url": "URL Api-ja"
     },
     "comment": {
         "pinned_by": "Prikvačio korisnik {author}",
@@ -160,7 +161,15 @@
         "instance_privacy_policy": "Politika privatnosti",
         "add_to_group": "Dodaj grupi",
         "instances_not_shown": "Javne instance koje ovdje nisu prikazane trenutačno nisu dostupne.",
-        "concurrent_prefetch_limit": "Ograničenje istodobnog preuzimanja videa"
+        "concurrent_prefetch_limit": "Ograničenje istodobnog preuzimanja videa",
+        "customize": "Prilagodi",
+        "invalid_url": "Neispravni URL!",
+        "add": "Dodaj",
+        "delete_group_confirm": "Izbrisati ovu grupu?",
+        "creator_replied": "Autor je odgovorio",
+        "creator_liked": "Autoru se sviđa",
+        "invalid_input": "Neispravni unos",
+        "playback_speed": "Brzina reprodukcije"
     },
     "player": {
         "watch_on": "Gledaj na {0}",
@@ -182,7 +191,9 @@
         "livestreams": "Prijenosi uživo",
         "bookmarks": "Zabilješke",
         "channel_groups": "Grupe kanala",
-        "dearrow": "DeArrow"
+        "dearrow": "DeArrow",
+        "albums": "Albumi",
+        "custom_instances": "Prilagođene instance"
     },
     "login": {
         "password": "Lozinka",
